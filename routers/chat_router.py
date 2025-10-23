@@ -41,7 +41,8 @@ client = OpenAI(
 
 chats={}
 application_prompt = {"role": "system", "content": f"""You are an expert Oracle SQL assistant. The database you are working on is oracle db.
-                        Use only the provided database schema to answer queries.
+                        Use only the provided database schema to answer queries. 
+                        While generating the sql script always follow the rules below.
                         STRICT OUTPUT RULES:
                         - Output ONLY raw SQL text.
                         - Do not wrap the sql in markdown
@@ -100,9 +101,9 @@ async def add_chat(request: ChatModel) -> JSONResponse:
             logger.warning(f"Invalid chat requested: {chat_id}")
             return JSONResponse(status_code=404, content={"chat_id": chat_id})
 
-        chat = chats[chat_id]
+        current_chat = chats[chat_id]
 
-        logger.info("User query:", message)
+        logger.info(f"User query: {message}")
         relevant_schema = embeddingUtils.query_embeddings(message)
         logger.info(f"Relevant schema: {relevant_schema}")
         system_prompt = {"role": "system", "content": f"""
@@ -110,20 +111,22 @@ async def add_chat(request: ChatModel) -> JSONResponse:
                         Below is the relevant schema:
                         {relevant_schema}
                         """}
+        message += f"Below is the relevant schema: {relevant_schema}"
         user_prompt = {"role": "user", "content": message}
 
-        chat.append(system_prompt)
-        chat.append(user_prompt)
+        current_chat.append(application_prompt)
+        current_chat.append(user_prompt)
 
         sql_response = client.chat.completions.create(
             model=get_chat_llm_model(),
-            messages=chat
+            messages=current_chat,
+
         )
 
         sql_query = sql_response.choices[0].message.content
         logger.info(f"SQL query: {sql_query}")
         query_result = execute_query(sql_query)
-        chat.append({"role": "assistant", "content": f"sql: {sql_query}"})
+        current_chat.append({"role": "assistant", "content": f"sql: {sql_query}"})
         process_result_query = f"""You are a helpful assistant. 
                                         Your task is to process user query and provide them response.
                                         A user has asked you this question: {message}
@@ -131,11 +134,11 @@ async def add_chat(request: ChatModel) -> JSONResponse:
                                         This is the result from db: {query_result}
                                         Your task is to create a beautiful well structured response for the user"""
 
-        chat.append({"role": "user", "content": f"""{process_result_query}"""})
+        current_chat.append({"role": "user", "content": f"""{process_result_query}"""})
 
         result_response = client.chat.completions.create(
             model=get_chat_llm_model(),
-            messages=chat
+            messages=current_chat
         )
 
         return JSONResponse(status_code=200, content={"chat_id": result_response.choices[0].message.content})

@@ -9,10 +9,9 @@ embeddings_router = APIRouter(
     tags=["Embeddings"]
 )
 
-embedding_utils = EmbeddingUtils()
-
 @embeddings_router.get("/db")
 async def refresh_db_embeddings():
+    embedding_utils = EmbeddingUtils()
     try:
         schmea = get_db_schema()
         schema_text = schema_to_text(schmea)

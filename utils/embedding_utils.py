@@ -1,5 +1,3 @@
-import os
-
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from google import genai
@@ -7,8 +5,14 @@ import chromadb
 
 from configurations.configs import get_embeddings_client_api_key, get_vector_db_collection_name, get_embedding_model
 
-
 class EmbeddingUtils:
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self):
         load_dotenv()
