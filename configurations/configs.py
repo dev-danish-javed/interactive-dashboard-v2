@@ -23,3 +23,6 @@ def get_chat_base_url() -> str:
 
 def get_chat_llm_model() -> str:
     return os.getenv("CHAT_LLM_MODEL")
+
+def get_chat_llm_client() -> str:
+    return os.getenv("CHAT_CLIENT")
