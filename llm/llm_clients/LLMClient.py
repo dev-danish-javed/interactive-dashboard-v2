@@ -1,6 +1,9 @@
 from enum import Enum
 from google import genai
 from google.genai import types
+from google.genai.types import GenerateContentConfig
+from humanfriendly.terminal import message
+from pydantic import BaseModel
 
 from configurations.configs import get_chat_client_api_key, get_chat_llm_model, get_embedding_model
 
@@ -15,9 +18,21 @@ class LLMClients(Enum):
     def _missing_(cls, value):
         return cls.UNKNOWN
 
+class LLMSQLResponseSchema(BaseModel):
+    sql: str
+    invalid_request: bool = False
+
+class LLMNaturalLanguageResponseSchema(BaseModel):
+    response: str
+    invalid_request: bool = False
+
 class LLMClient:
-    def ping(self, chat, message):
+    def get_sql_command(self, chat, message):
         """Process messages with llm"""
+        pass
+
+    def prepare_response(self, chat, message):
+        """Prepares a response for the user query in natural language"""
         pass
 
     def embed(self, content: str):
@@ -50,20 +65,27 @@ class GeminiClient(LLMClient):
 
     def create_chat(self, system_prompt=None):
         """Creates and intialize a new chat"""
-        return self.client.chats.create(model=self.chat_model,
-                                        config= types.GenerateContentConfig(
-                                            system_instruction= system_prompt))
+        return [{"role":"system", "content": system_prompt}]
 
-    def ping(self, chat, message):
+    def get_sql_command(self, chat, message):
         """Process messages with llm"""
         try:
-            response = chat.send_message(message)
-            return response.text
+            chat.append({"role": "user", "content": message})
+            response = self.client.models.generate_content(
+                model=self.chat_model,
+                contents=str(chat),
+                config={
+                    'response_mime_type': 'application/json',
+                    'response_schema': LLMSQLResponseSchema,
+                },
+            )
+            response = response.parsed
+            return response.sql
         except Exception as error:
             print(error)
 
     def get_chat_history(self, chat):
-        return chat.get_history()
+        return chat
 
     def embed(self, content: str):
         """Embed messages with llm"""
@@ -72,6 +94,23 @@ class GeminiClient(LLMClient):
             contents=content
         )
         return result.embeddings
+
+    def prepare_response(self, chat, message):
+        """Process messages with llm"""
+        try:
+            response = self.client.models.generate_content(
+                model=self.chat_model,
+                contents=message,
+
+                config={
+                    'response_mime_type': 'application/json',
+                    'response_schema': LLMNaturalLanguageResponseSchema,
+                },
+            )
+            response = response.parsed
+            return response.response
+        except Exception as error:
+            print(error)
 
 
 class OpenAIClient(LLMClient):

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gemini API Playground</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1e1e1e; color: #eee; padding: 20px; }
+    h2 { color: #ffcc00; }
+    button { margin: 8px 0; padding: 8px 16px; border: none; background: #ffcc00; color: #000; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #ffdd33; }
+    input, textarea { width: 100%; margin-top: 4px; margin-bottom: 8px; padding: 8px; border-radius: 4px; border: 1px solid #555; background: #333; color: #fff; }
+    .section { margin-bottom: 30px; border: 1px solid #333; padding: 20px; border-radius: 8px; background: #2a2a2a; }
+    pre { background: #111; padding: 10px; border-radius: 4px; overflow-x: auto; }
+
+    /* Loader styles */
+    #loader {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      display: none;
+    }
+    .spinner {
+      border: 6px solid #333;
+      border-top: 6px solid #ffcc00;
+      border-radius: 50%;
+      width: 60px; height: 60px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader"><div class="spinner"></div></div>
+
+  <h1>Gemini API Playground</h1>
+
+  <div class="section">
+    <h2>GET /embeddings/db</h2>
+    <button onclick="callApi('GET', 'http://localhost:8000/embeddings/db', 'embeddingsResult')">Fetch Embeddings</button>
+    <pre id="embeddingsResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>GET /chat/start</h2>
+    <button onclick="callApi('GET', 'http://localhost:8000/chat/start', 'startChatResult')">Start Chat</button>
+    <pre id="startChatResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>GET /chat/{chat_id}</h2>
+    <input type="text" id="chatId" placeholder="Enter chat_id" oninput="saveInput('chatId')" />
+    <button onclick="getChatById()">Get Chat</button>
+    <pre id="chatByIdResult"></pre>
+  </div>
+
+  <div class="section">
+    <h2>POST /chat/message</h2>
+    <input type="text" id="chatIdMsg" placeholder="Enter chat_id" oninput="saveInput('chatIdMsg')" />
+    <textarea id="messageContent" placeholder="Enter your message" oninput="saveInput('messageContent')"></textarea>
+    <button onclick="sendChatMessage()">Send Message</button>
+    <pre id="sendMessageResult"></pre>
+  </div>
+
+  <script>
+    // Loader control
+    function showLoader() { document.getElementById('loader').style.display = 'flex'; }
+    function hideLoader() { document.getElementById('loader').style.display = 'none'; }
+
+    // Save input to localStorage
+    function saveInput(id) {
+      localStorage.setItem(id, document.getElementById(id).value);
+    }
+
+    // Load inputs on page load
+    window.onload = () => {
+      ['chatId', 'chatIdMsg', 'messageContent'].forEach(id => {
+        const saved = localStorage.getItem(id);
+        if (saved) document.getElementById(id).value = saved;
+      });
+    };
+
+    async function callApi(method, url, resultId, body = null) {
+      showLoader();
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: body ? JSON.stringify(body) : null
+        });
+        const result = await response.json();
+        document.getElementById(resultId).textContent = JSON.stringify(result, null, 2);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function getChatById() {
+      const chatId = document.getElementById('chatId').value.trim();
+      if (!chatId) return alert('Please enter chat_id');
+      showLoader();
+      try {
+        const response = await fetch(`http://localhost:8000/chat/${chatId}`);
+        const result = await response.json();
+        document.getElementById('chatByIdResult').textContent = JSON.stringify(result, null, 2);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        hideLoader();
+      }
+    }
+
+    async function sendChatMessage() {
+      const chatId = document.getElementById('chatIdMsg').value.trim();
+      const message = document.getElementById('messageContent').value.trim();
+      if (!chatId || !message) return alert('Please fill both fields');
+      showLoader();
+      try {
+        const response = await fetch('http://localhost:8000/chat/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, new_message: message, messages: [] })
+        });
+        const result = await response.json();
+        document.getElementById('sendMessageResult').textContent = JSON.stringify(result, null, 2);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        hideLoader();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 from configurations.configs import get_chat_llm_client
-from llm_clients.LLMClient import LLMClient, LLMClients, GeminiClient, OpenAIClient
-from routers.chat_router import ChatModel
+from llm.llm_clients.LLMClient import LLMClient, LLMClients, GeminiClient, OpenAIClient
 
 class LLMClientFactory:
     @staticmethod

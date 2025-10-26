@@ -1,4 +1,4 @@
-from llm_clients.factory.LLMClientFactory import LLMClientFactory
+from llm.llm_clients.factory.LLMClientFactory import LLMClientFactory
 from services.prompts import sql_prompt, process_result_query
 from utils.db_utils.oracle_utils import execute_query
 from utils.embedding_utils import EmbeddingUtils
@@ -40,12 +40,14 @@ class ChatService:
                         
                         Relevant schema : {relevant_schema}
                         """
-            sql_command= llm_client.ping(current_chat, message)
+            sql_command= llm_client.get_sql_command(current_chat, message)
             sql_result = execute_query(sql_command)
             process_result_prompt = process_result_query
             process_result_prompt = process_result_prompt.replace("<user_query>", message).replace("<sql_query>", sql_command).replace("<db_result>", str(sql_result))
 
-            return llm_client.ping(current_chat, process_result_prompt)
+            natural_language_response = llm_client.prepare_response(current_chat, process_result_prompt)
+            current_chat.append({"role":"assistant", "content": natural_language_response})
+            return natural_language_response
         except Exception as error:
             print(error)
 
