@@ -1,11 +1,12 @@
 from enum import Enum
 from google import genai
 from google.genai import types
-from google.genai.types import GenerateContentConfig
+from google.genai.types import GenerateContentConfig, Content, Part
 from humanfriendly.terminal import message
 from pydantic import BaseModel
 
 from configurations.configs import get_chat_client_api_key, get_chat_llm_model, get_embedding_model
+from llm.llm_functions import execute_sql_query_function_declaration, LLM_FUNCTION_MAP
 
 
 class LLMClients(Enum):
@@ -27,7 +28,7 @@ class LLMNaturalLanguageResponseSchema(BaseModel):
     invalid_request: bool = False
 
 class LLMClient:
-    def get_sql_command(self, chat, message):
+    def get_query_data(self, chat, message):
         """Process messages with llm"""
         pass
 
@@ -67,20 +68,33 @@ class GeminiClient(LLMClient):
         """Creates and intialize a new chat"""
         return [{"role":"system", "content": system_prompt}]
 
-    def get_sql_command(self, chat, message):
+    def get_query_data(self, chat, message):
         """Process messages with llm"""
         try:
             chat.append({"role": "user", "content": message})
+            tools = types.Tool(function_declarations=[execute_sql_query_function_declaration])
+            config_functions_only = types.GenerateContentConfig(tools=[tools])
             response = self.client.models.generate_content(
                 model=self.chat_model,
                 contents=str(chat),
-                config={
-                    'response_mime_type': 'application/json',
-                    'response_schema': LLMSQLResponseSchema,
-                },
+                config=config_functions_only
             )
-            response = response.parsed
-            return response.sql
+
+            function_call = response.candidates[0].content.parts[0].function_call
+
+            if function_call:
+                func_name = function_call.name
+                func_args = function_call.args or {}
+
+                if func_name in LLM_FUNCTION_MAP:
+                    function_result = LLM_FUNCTION_MAP[func_name](**func_args)
+                    chat.append(Content(
+                        role="model",
+                        parts=[Part(text=f"Function '{func_name}' executed. Result: {str(function_result)}")]
+                    ))
+                    return function_result
+
+            return None
         except Exception as error:
             print(error)
 
