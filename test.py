@@ -110,3 +110,5 @@ while True:
         model_text = response.candidates[0].content.parts[0].text
         print(f"Assistant: {model_text}")
         chat.append(Content(role="model", parts=[Part(text=model_text)]))
+
+# test changes
