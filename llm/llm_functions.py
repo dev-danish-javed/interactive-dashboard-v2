@@ -4,7 +4,7 @@ from utils.db_utils.oracle_utils import execute_query
 
 execute_sql_query_function_declaration = FunctionDeclaration(
     name="execute_query",
-    description="Schedules a meeting with specified attendees at a given time and date.",
+    description="Executes a query in the oracle db and returns the result",
     parameters=Schema(
         type=Type.OBJECT,
         properties={
