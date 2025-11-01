@@ -1,5 +1,5 @@
 from llm.llm_clients.factory.LLMClientFactory import LLMClientFactory
-from services.prompts import sql_prompt, process_result_query, sql_prompt_2
+from services.prompts import sql_prompt, process_result_query, sql_prompt_2, chart_function_call_prompt
 from utils.db_utils.oracle_utils import execute_query
 from utils.embedding_utils import EmbeddingUtils
 
@@ -44,9 +44,20 @@ class ChatService:
             process_result_prompt = process_result_query
             process_result_prompt = process_result_prompt.replace("<user_query>", message).replace("<db_result>", str(sql_result))
 
-            natural_language_response = llm_client.prepare_response(current_chat, process_result_prompt)
-            current_chat.append({"role":"assistant", "content": natural_language_response})
-            return natural_language_response
+            processed_result = llm_client.process_db_result(current_chat, process_result_prompt)
+            if processed_result.can_create_chart_on_data:
+                relevant_schema = embedding_utils.query_embeddings(processed_result.relevant_question_for_chart_data)
+                message = f"""User query : {processed_result.relevant_question_for_chart_data}
+                        
+                        Relevant schema : {relevant_schema}
+                        """
+                sql_result= llm_client.get_query_data(current_chat, message)
+                charts_prompt = chart_function_call_prompt.replace('<user_query>', message).replace('<db result>', processed_result.response)
+                charts_prompt = charts_prompt.replace('<model_question>', processed_result.relevant_question_for_chart_data)
+                charts_prompt = charts_prompt.replace('<model_query_result>', sql_result)
+                llm_client.create_chat(charts_prompt)
+            
+            return processed_result
         except Exception as error:
             print(error)
 

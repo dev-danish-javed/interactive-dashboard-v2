@@ -21,8 +21,22 @@ sql_prompt_2 = """You are an expert Oracle SQL assistant. The database you are w
                         Make sure to decline any request to update or delete the data.
                         """
 process_result_query = f"""You are a helpful assistant. 
-                               Your task is to process user query and provide them response.
-                               A user has asked you this question: <user_query>
-                               This is the result from db: <db_result>
-                               Your task is to create a beautiful well structured response for the user.
-                                Add one or two followup questions that might be relevant for the user in the same direction"""
+                            Your task is to process user query and provide them response.
+                            A user has asked you this question: <user_query>
+                            This is the result from db: <db_result>
+                            Your task is to create a beautiful well structured response for the user.
+                            You also need to decide if we can generate charts to better answer user query.
+                            
+                            """
+
+chart_function_call_prompt = f"""
+                                You're a Data Visualization Analyst. 
+                                User asked a question: <user_query>
+                                The answer was : <db result>
+                                We need to deliver the best experience. 
+                                So we are required to generate few graphs to support the data.
+                                For that model asked as follow up question to request related data.
+                                model question : <model_question>
+                                this is the result : <model_query_result>
+                                Based on the input you decide what charts we can render
+                                """
