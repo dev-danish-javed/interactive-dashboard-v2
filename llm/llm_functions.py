@@ -21,17 +21,16 @@ LLM_FUNCTION_MAP = {
     "execute_query": lambda **args: execute_query(**args)
 }
 
-
-
 # --- Function Declarations ---
+
 bar_chart_function = FunctionDeclaration(
     name="bar_chart",
     description="Renders a bar chart from data and returns HTML <img> string.",
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY, description="List of numeric values."),
-            "labels": Schema(type=Type.ARRAY, description="Labels for each bar."),
+            "data": Schema(type=Type.ARRAY, description="List of numeric values.", items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, description="Labels for each bar.", items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING, description="Chart title."),
             "xlabel": Schema(type=Type.STRING, description="X-axis label."),
             "ylabel": Schema(type=Type.STRING, description="Y-axis label.")
@@ -46,9 +45,9 @@ grouped_bar_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data_groups": Schema(type=Type.ARRAY, description="List of value lists, one per group."),
-            "labels": Schema(type=Type.ARRAY, description="Category labels."),
-            "group_names": Schema(type=Type.ARRAY, description="Names of each group.")
+            "data_groups": Schema(type=Type.ARRAY, description="List of value lists, one per group.", items=Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER))),
+            "labels": Schema(type=Type.ARRAY, description="Category labels.", items=Schema(type=Type.STRING)),
+            "group_names": Schema(type=Type.ARRAY, description="Names of each group.", items=Schema(type=Type.STRING))
         },
         required=["data_groups", "labels", "group_names"]
     )
@@ -60,8 +59,8 @@ line_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "x": Schema(type=Type.ARRAY, description="X-axis values."),
-            "y": Schema(type=Type.ARRAY, description="Y-axis values."),
+            "x": Schema(type=Type.ARRAY, description="X-axis values.", items=Schema(type=Type.STRING)),
+            "y": Schema(type=Type.ARRAY, description="Y-axis values.", items=Schema(type=Type.NUMBER)),
             "title": Schema(type=Type.STRING),
             "xlabel": Schema(type=Type.STRING),
             "ylabel": Schema(type=Type.STRING)
@@ -76,9 +75,9 @@ multi_line_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "x": Schema(type=Type.ARRAY),
-            "y_series": Schema(type=Type.ARRAY, description="List of Y-series data arrays."),
-            "labels": Schema(type=Type.ARRAY, description="Names for each series.")
+            "x": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
+            "y_series": Schema(type=Type.ARRAY, description="List of Y-series data arrays.", items=Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER))),
+            "labels": Schema(type=Type.ARRAY, description="Names for each series.", items=Schema(type=Type.STRING))
         },
         required=["x", "y_series", "labels"]
     )
@@ -90,8 +89,8 @@ area_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "x": Schema(type=Type.ARRAY),
-            "y": Schema(type=Type.ARRAY),
+            "x": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
+            "y": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
             "title": Schema(type=Type.STRING),
             "xlabel": Schema(type=Type.STRING),
             "ylabel": Schema(type=Type.STRING)
@@ -106,8 +105,8 @@ pie_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY),
-            "labels": Schema(type=Type.ARRAY),
+            "data": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["data", "labels"]
@@ -120,8 +119,8 @@ donut_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY),
-            "labels": Schema(type=Type.ARRAY),
+            "data": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["data", "labels"]
@@ -134,8 +133,8 @@ scatter_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "x": Schema(type=Type.ARRAY),
-            "y": Schema(type=Type.ARRAY),
+            "x": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "y": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
             "title": Schema(type=Type.STRING),
             "xlabel": Schema(type=Type.STRING),
             "ylabel": Schema(type=Type.STRING)
@@ -150,9 +149,9 @@ bubble_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "x": Schema(type=Type.ARRAY),
-            "y": Schema(type=Type.ARRAY),
-            "sizes": Schema(type=Type.ARRAY, description="Bubble sizes."),
+            "x": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "y": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "sizes": Schema(type=Type.ARRAY, description="Bubble sizes.", items=Schema(type=Type.NUMBER)),
             "title": Schema(type=Type.STRING)
         },
         required=["x", "y", "sizes"]
@@ -165,7 +164,7 @@ histogram_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY),
+            "data": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
             "bins": Schema(type=Type.INTEGER),
             "title": Schema(type=Type.STRING)
         },
@@ -179,8 +178,8 @@ box_plot_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY),
-            "labels": Schema(type=Type.ARRAY),
+            "data": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["data"]
@@ -193,8 +192,8 @@ violin_plot_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "data": Schema(type=Type.ARRAY),
-            "labels": Schema(type=Type.ARRAY),
+            "data": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["data"]
@@ -207,9 +206,9 @@ heatmap_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "matrix": Schema(type=Type.ARRAY),
-            "x_labels": Schema(type=Type.ARRAY),
-            "y_labels": Schema(type=Type.ARRAY),
+            "matrix": Schema(type=Type.ARRAY, items=Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER))),
+            "x_labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
+            "y_labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["matrix", "x_labels", "y_labels"]
@@ -222,8 +221,8 @@ radar_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "categories": Schema(type=Type.ARRAY),
-            "values": Schema(type=Type.ARRAY),
+            "categories": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
+            "values": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
             "title": Schema(type=Type.STRING)
         },
         required=["categories", "values"]
@@ -236,8 +235,8 @@ waterfall_chart_function = FunctionDeclaration(
     parameters=Schema(
         type=Type.OBJECT,
         properties={
-            "values": Schema(type=Type.ARRAY),
-            "labels": Schema(type=Type.ARRAY),
+            "values": Schema(type=Type.ARRAY, items=Schema(type=Type.NUMBER)),
+            "labels": Schema(type=Type.ARRAY, items=Schema(type=Type.STRING)),
             "title": Schema(type=Type.STRING)
         },
         required=["values", "labels"]

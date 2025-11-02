@@ -6,7 +6,11 @@ from humanfriendly.terminal import message
 from pydantic import BaseModel
 
 from configurations.configs import get_chat_client_api_key, get_chat_llm_model, get_embedding_model
-from llm.llm_functions import execute_sql_query_function_declaration, LLM_FUNCTION_MAP, bar_chart_function
+from llm.llm_functions import execute_sql_query_function_declaration, LLM_FUNCTION_MAP, bar_chart_function, \
+    LLM_CHARTS_FUNCTION_MAP, grouped_bar_chart_function, line_chart_function, multi_line_chart_function, \
+    area_chart_function, pie_chart_function, donut_chart_function, scatter_chart_function, bubble_chart_function, \
+    histogram_function, box_plot_function, violin_plot_function, heatmap_function, radar_chart_function, \
+    waterfall_chart_function
 
 
 class LLMClients(Enum):
@@ -72,23 +76,7 @@ class GeminiClient(LLMClient):
 
     def create_chat(self, chart_prompt=None):
         """Creates and intialize a new chat"""
-        tools = types.Tool(function_declarations=[bar_chart_function])
-        config_chart_functions_only = types.GenerateContentConfig(tools=[tools])
-        response = self.client.models.generate_content(
-            model=self.chat_model,
-            contents=chart_prompt,
-            config=config_chart_functions_only
-        )
 
-        function_call = response.candidates[0].content.parts[0].function_call
-
-        if function_call:
-            func_name = function_call.name
-            func_args = function_call.args or {}
-
-            if func_name in LLM_FUNCTION_MAP:
-                function_result = LLM_FUNCTION_MAP[func_name](**func_args)
-                return function_result
         return [{"role":"user", "content": chart_prompt}]
 
     def get_query_data(self, chat, message) -> LLMSQLResponseSchema:
@@ -150,6 +138,32 @@ class GeminiClient(LLMClient):
         except Exception as error:
             print(error)
 
+    def create_chart(self, chart_prompt:str):
+        tools = types.Tool(function_declarations=[bar_chart_function, grouped_bar_chart_function,
+                                                  line_chart_function, multi_line_chart_function,
+                                                  area_chart_function, pie_chart_function,
+                                                  donut_chart_function, scatter_chart_function,
+                                                  bubble_chart_function, histogram_function,
+                                                  box_plot_function, violin_plot_function,
+                                                  heatmap_function, radar_chart_function,
+                                                  waterfall_chart_function])
+        config_chart_functions_only = types.GenerateContentConfig(tools=[tools])
+        response = self.client.models.generate_content(
+            model=self.chat_model,
+            contents=[chart_prompt],
+            config=config_chart_functions_only
+        )
+
+        function_call = response.candidates[0].content.parts[0].function_call
+
+        if function_call:
+            func_name = function_call.name
+            func_args = function_call.args or {}
+
+            if func_name in LLM_CHARTS_FUNCTION_MAP:
+                function_result = LLM_CHARTS_FUNCTION_MAP[func_name](**func_args)
+                return function_result
+        return None
     
 
 class OpenAIClient(LLMClient):

@@ -32,6 +32,7 @@ class ChatService:
     def ping(self, chat_id:str, message):
         """Process messages with llm"""
         try:
+            chart_image_tag = None
             current_chat = self.chats.get(chat_id)
             llm_client = LLMClientFactory.getChatClient()
             embedding_utils = EmbeddingUtils()
@@ -54,10 +55,11 @@ class ChatService:
                 sql_result= llm_client.get_query_data(current_chat, message)
                 charts_prompt = chart_function_call_prompt.replace('<user_query>', message).replace('<db result>', processed_result.response)
                 charts_prompt = charts_prompt.replace('<model_question>', processed_result.relevant_question_for_chart_data)
-                charts_prompt = charts_prompt.replace('<model_query_result>', sql_result)
-                llm_client.create_chat(charts_prompt)
+                charts_prompt = charts_prompt.replace('<model_query_result>', str(sql_result))
+                chart_image_tag = llm_client.create_chart(charts_prompt)
+
             
-            return processed_result
+            return {'text_response':processed_result.response, "chart_image_tag" : chart_image_tag}
         except Exception as error:
             print(error)
 

@@ -5,7 +5,7 @@ sql_prompt = """You are an expert Oracle SQL assistant. The database you are wor
                         - Output ONLY raw SQL text.
                         - Do not wrap the sql in markdown
                         - Always return a valid Oracle SQL script.
-                        - Do not add a trailing semicolon.
+                        - **Do not add semicolons**
 
                         Example of correct output:
                             SELECT * FROM users
@@ -19,14 +19,27 @@ sql_prompt_2 = """You are an expert Oracle SQL assistant. The database you are w
                         Use only the provided database schema to answer queries. 
                         Provide SQL queries that are compatible with Oracle queries.
                         Make sure to decline any request to update or delete the data.
+                        **Use functions avilable to get data.**
+                        STRICT OUTPUT RULES FOR SQL GENERATION:
+                        - Do not wrap the sql in markdown
+                        - Always return a valid Oracle SQL script.
+                        - **Do not add semicolons**
+
+                        Example of correct sql output:
+                            SELECT * FROM users
+
+                        Example of wrong sql output:
+                            ```sql
+                            SELECT * FROM users;
+                            ```
                         """
 process_result_query = f"""You are a helpful assistant. 
                             Your task is to process user query and provide them response.
                             A user has asked you this question: <user_query>
                             This is the result from db: <db_result>
                             Your task is to create a beautiful well structured response for the user.
-                            You also need to decide if we can generate charts to better answer user query.
-                            
+                            Use the result from db and craft a natral language response describing the result
+                            You also need to decide if we can generate charts to better answer user query.                            
                             """
 
 chart_function_call_prompt = f"""
