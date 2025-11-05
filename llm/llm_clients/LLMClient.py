@@ -77,7 +77,7 @@ class GeminiClient(LLMClient):
     def create_chat(self, chart_prompt=None):
         """Creates and intialize a new chat"""
 
-        return [{"role":"user", "content": chart_prompt}]
+        return [{"role":"system", "content": chart_prompt}]
 
     def get_query_data(self, chat, message) -> LLMSQLResponseSchema:
         """Process messages with llm"""
