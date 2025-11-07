@@ -11,6 +11,7 @@ from llm.llm_functions import execute_sql_query_function_declaration, LLM_FUNCTI
     area_chart_function, pie_chart_function, donut_chart_function, scatter_chart_function, bubble_chart_function, \
     histogram_function, box_plot_function, violin_plot_function, heatmap_function, radar_chart_function, \
     waterfall_chart_function
+from utils.logger import get_logger
 
 
 class LLMClients(Enum):
@@ -73,10 +74,10 @@ class GeminiClient(LLMClient):
         # self.client = genai.Client(api_key= get_chat_client_api_key())
         self.chat_model = get_chat_llm_model()
         self.embedding_model = get_embedding_model()
+        self.logger = get_logger("GeminiClient")
 
     def create_chat(self, chart_prompt=None):
         """Creates and intialize a new chat"""
-
         return [{"role":"system", "content": chart_prompt}]
 
     def get_query_data(self, chat, message) -> LLMSQLResponseSchema:
@@ -90,24 +91,25 @@ class GeminiClient(LLMClient):
                 contents=str(chat),
                 config=config_functions_only
             )
-
+            self.logger.info(f"Got sql response from Gemini model")
             function_call = response.candidates[0].content.parts[0].function_call
 
             if function_call:
                 func_name = function_call.name
                 func_args = function_call.args or {}
-
+                self.logger.info(f"Got function call from Gemini model: {func_name} with args: {func_args}")
                 if func_name in LLM_FUNCTION_MAP:
                     function_result = LLM_FUNCTION_MAP[func_name](**func_args)
                     chat.append(Content(
                         role="model",
                         parts=[Part(text=f"Function '{func_name}' executed. Result: {str(function_result)}")]
                     ))
+                    self.logger.info(f"Done executing function: {func_name}")
                     return function_result
 
             return None
         except Exception as error:
-            print(error)
+            self.logger.error(f"Error getting query data: {error}")
 
     def get_chat_history(self, chat):
         return chat
@@ -123,6 +125,7 @@ class GeminiClient(LLMClient):
     def process_db_result(self, chat, message) -> LLMProcessDBResultResponseSchema:
         """Process messages with llm"""
         try:
+            self.logger.info(f"Processing db result for natural language response")
             response = self.client.models.generate_content(
                 model=self.chat_model,
                 contents=message,
@@ -134,11 +137,13 @@ class GeminiClient(LLMClient):
             )
             response = response.parsed
             chat.append({"role":"assistant", "content": response.response})
+            self.logger.info(f"Natural language response generated for db result")
             return response
         except Exception as error:
-            print(error)
+            self.logger.error(f"Error processing db result for natural language response: {error}")
 
     def create_chart(self, chart_prompt:str):
+        self.logger.info(f"Chart creation started")
         tools = types.Tool(function_declarations=[bar_chart_function, grouped_bar_chart_function,
                                                   line_chart_function, multi_line_chart_function,
                                                   area_chart_function, pie_chart_function,
@@ -157,11 +162,14 @@ class GeminiClient(LLMClient):
         function_call = response.candidates[0].content.parts[0].function_call
 
         if function_call:
+
             func_name = function_call.name
             func_args = function_call.args or {}
+            self.logger.info(f"Got function call from Gemini model: {func_name}")
 
             if func_name in LLM_CHARTS_FUNCTION_MAP:
                 function_result = LLM_CHARTS_FUNCTION_MAP[func_name](**func_args)
+                self.logger.info(f"Done executing function: {func_name}")
                 return function_result
         return None
     

@@ -1,4 +1,4 @@
-import uuid
+from utils.logger import get_logger
 from typing import List
 
 from fastapi import APIRouter
@@ -24,7 +24,7 @@ chat_router = APIRouter(
 
 chat_service = ChatService()
 
- 
+logger = get_logger("chat_router")
 
 
 # Generate a new chat
@@ -35,7 +35,10 @@ async def chat() -> JSONResponse:
     :return: chat_id
     """
     # create and return the chat id
-    return JSONResponse( status_code=200, content={"chat_id": chat_service.create_chat()})
+    logger.info("Generating new chat")
+    new_chat_id = chat_service.create_chat()
+    logger.info(f"Generated new chat with id: {new_chat_id}")
+    return JSONResponse( status_code=200, content={"chat_id": new_chat_id})
 
 
 @chat_router.get("/{chat_id}")
