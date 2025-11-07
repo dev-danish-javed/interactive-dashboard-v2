@@ -1,15 +1,6 @@
-import logging
-
 from sqlalchemy import create_engine, inspect, text
 
 from configurations.configs import get_db_uri
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
-logger = logging.getLogger(__name__)
 
 # Format into readable text for embeddings
 def schema_to_text(schema_dict):
@@ -46,7 +37,6 @@ def get_db_schema():
     insp = inspect(engine)
     # pull data from db
     for table_name in insp.get_table_names():
-        logger.info(f"Fetching table details for table: {table_name}")
         table_info = {"columns": [], "primary_keys": [], "foreign_keys": [], "indexes": []}
 
         # Columns info
@@ -119,5 +109,4 @@ def get_packages_source_text() -> str:
                 parts.append("\n")
             return "\n".join(parts)
     except Exception as e:
-        logger.exception("Failed to fetch package sources from DB")
         return ""
