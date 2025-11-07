@@ -36,24 +36,41 @@ class ChatService:
             current_chat = self.chats.get(chat_id)
             llm_client = LLMClientFactory.getChatClient()
             embedding_utils = EmbeddingUtils()
+            # Build concise relevant context from vector DB (documents only)
             relevant_schema = embedding_utils.query_embeddings(message)
-            message = f"""User query : {message}
+            try:
+                docs = relevant_schema.get("documents", [])
+                if isinstance(docs, list) and len(docs) > 0 and isinstance(docs[0], list):
+                    docs = docs[0]
+                relevant_context = "\n\n".join(docs) if docs else ""
+            except Exception:
+                relevant_context = ""
+
+            model_input = f"""User query : {message}
                         
-                        Relevant schema : {relevant_schema}
+                        Relevant schema : {relevant_context}
                         """
-            sql_result= llm_client.get_query_data(current_chat, message)
+            sql_result= llm_client.get_query_data(current_chat, model_input)
             process_result_prompt = process_result_query
-            process_result_prompt = process_result_prompt.replace("<user_query>", message).replace("<db_result>", str(sql_result))
+            process_result_prompt = process_result_prompt.replace("<user_query>", model_input).replace("<db_result>", str(sql_result))
 
             processed_result = llm_client.process_db_result(current_chat, process_result_prompt)
             if processed_result.can_create_chart_on_data:
                 relevant_schema = embedding_utils.query_embeddings(processed_result.relevant_question_for_chart_data)
-                message = f"""User query : {processed_result.relevant_question_for_chart_data}
+                try:
+                    docs = relevant_schema.get("documents", [])
+                    if isinstance(docs, list) and len(docs) > 0 and isinstance(docs[0], list):
+                        docs = docs[0]
+                    relevant_context_chart = "\n\n".join(docs) if docs else ""
+                except Exception:
+                    relevant_context_chart = ""
+
+                followup_input = f"""User query : {processed_result.relevant_question_for_chart_data}
                         
-                        Relevant schema : {relevant_schema}
+                        Relevant schema : {relevant_context_chart}
                         """
-                sql_result= llm_client.get_query_data(current_chat, message)
-                charts_prompt = chart_function_call_prompt.replace('<user_query>', message).replace('<db result>', processed_result.response)
+                sql_result= llm_client.get_query_data(current_chat, followup_input)
+                charts_prompt = chart_function_call_prompt.replace('<user_query>', followup_input).replace('<db result>', processed_result.response)
                 charts_prompt = charts_prompt.replace('<model_question>', processed_result.relevant_question_for_chart_data)
                 charts_prompt = charts_prompt.replace('<model_query_result>', str(sql_result))
                 chart_image_tag = llm_client.create_chart(charts_prompt)
