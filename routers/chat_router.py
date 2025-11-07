@@ -1,4 +1,3 @@
-import logging
 import uuid
 from typing import List
 
@@ -25,12 +24,7 @@ chat_router = APIRouter(
 
 chat_service = ChatService()
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
-logger = logging.getLogger(__name__)
+ 
 
 
 # Generate a new chat

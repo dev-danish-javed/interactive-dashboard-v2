@@ -36,6 +36,11 @@ class ChatService:
             current_chat = self.chats.get(chat_id)
             llm_client = LLMClientFactory.getChatClient()
             embedding_utils = EmbeddingUtils()
+
+            # If server restarted or chat_id invalid, (re)initialize chat for this id
+            if current_chat is None:
+                current_chat = llm_client.create_chat(sql_prompt_2)
+                self.chats[chat_id] = current_chat
             # Build concise relevant context from vector DB (documents only)
             relevant_schema = embedding_utils.query_embeddings(message)
             try:
@@ -55,7 +60,12 @@ class ChatService:
             process_result_prompt = process_result_prompt.replace("<user_query>", model_input).replace("<db_result>", str(sql_result))
 
             processed_result = llm_client.process_db_result(current_chat, process_result_prompt)
-            if processed_result.can_create_chart_on_data:
+
+            # Safe guard if LLM didn't return a structured response
+            if not processed_result:
+                return {'text_response': 'I could not summarize the result. Please try rephrasing your question.', "chart_image_tag": None}
+
+            if getattr(processed_result, 'can_create_chart_on_data', False):
                 relevant_schema = embedding_utils.query_embeddings(processed_result.relevant_question_for_chart_data)
                 try:
                     docs = relevant_schema.get("documents", [])
@@ -78,5 +88,5 @@ class ChatService:
             
             return {'text_response':processed_result.response, "chart_image_tag" : chart_image_tag}
         except Exception as error:
-            print(error)
+            return {"text_response": "Sorry, I ran into an issue processing your request.", "chart_image_tag": None}
 

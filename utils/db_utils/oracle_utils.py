@@ -1,15 +1,6 @@
-import logging
-
 from sqlalchemy import create_engine, inspect, text
 
 from configurations.configs import get_db_uri
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
-)
-
-logger = logging.getLogger(__name__)
 
 # Format into readable text for embeddings
 def schema_to_text(schema_dict):
@@ -46,7 +37,6 @@ def get_db_schema():
     insp = inspect(engine)
     # pull data from db
     for table_name in insp.get_table_names():
-        logger.info(f"Fetching table details for table: {table_name}")
         table_info = {"columns": [], "primary_keys": [], "foreign_keys": [], "indexes": []}
 
         # Columns info
@@ -88,3 +78,35 @@ def execute_query(query: str):
         result = conn.execute(text(query))
         rows = result.fetchall()
     return rows
+
+
+def get_packages_source_text() -> str:
+    """Fetches PL/SQL package and package body source from current user and returns as a single text blob."""
+    engine = create_engine(get_db_uri())
+    try:
+        with engine.connect() as conn:
+            # USER_SOURCE works for the connected schema; avoids extra grants needed for ALL_SOURCE/DBA_SOURCE
+            result = conn.execute(text(
+                """
+                SELECT NAME, TYPE, LINE, TEXT
+                FROM USER_SOURCE
+                WHERE TYPE IN ('PACKAGE', 'PACKAGE BODY')
+                ORDER BY NAME, TYPE, LINE
+                """
+            ))
+            packages = {}
+            for name, typ, line, txt in result:
+                key = (name, typ)
+                if key not in packages:
+                    packages[key] = []
+                packages[key].append(txt or "")
+
+            parts = []
+            for (name, typ), lines in packages.items():
+                parts.append(f"-- {typ}: {name}")
+                # USER_SOURCE returns one row per line; join with newlines to preserve formatting
+                parts.append("\n".join(lines))
+                parts.append("\n")
+            return "\n".join(parts)
+    except Exception as e:
+        return ""
