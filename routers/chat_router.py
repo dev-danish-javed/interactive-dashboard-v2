@@ -41,6 +41,7 @@ async def chat() -> JSONResponse:
     :return: chat_id
     """
     # create and return the chat id
+    logger.info("GET /chat/start - Creating new chat")
     return JSONResponse( status_code=200, content={"chat_id": chat_service.create_chat()})
 
 
@@ -51,6 +52,7 @@ async def chat(chat_id: str) -> JSONResponse:
     :param chat_id:
     :return:
     """
+    logger.info(f"GET /chat/{chat_id} - Fetching chat history")
     return JSONResponse(chat_service.get_chat(chat_id))
     pass
 
@@ -62,7 +64,9 @@ async def add_chat(request: ChatModel) -> JSONResponse:
     :return:
     """
     try:
+        logger.info(f"POST /chat/message - chat_id={request.chat_id}")
         return JSONResponse(chat_service.ping(request.chat_id, request.new_message))
 
     except Exception as error:
+        logger.exception("/chat/message - FAILED")
         return JSONResponse(status_code=500, content={"error": str(error)})
