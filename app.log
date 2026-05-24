@@ -1,0 +1,51 @@
+2025-11-07 16:38:30 [INFO] chat_router.py:chat:38 — Generating new chat
+2025-11-07 16:38:31 [INFO] chat_router.py:chat:40 — Generated new chat with id: ch-1
+2025-11-07 17:55:34 [INFO] chat_router.py:chat:38 — Generating new chat
+2025-11-07 17:55:36 [INFO] chat_router.py:chat:40 — Generated new chat with id: ch-1
+2025-11-07 18:00:44 [INFO] chat_router.py:chat:38 — Generating new chat
+2025-11-07 18:00:47 [INFO] chat_service.py:create_chat:26 — Got LLM client as GeminiClient
+2025-11-07 18:29:30 [INFO] chat_router.py:chat:40 — Generated new chat with id: ch-1
+2025-11-07 18:33:51 [INFO] posthog.py:__init__:22 — Anonymized telemetry enabled. See                     https://docs.trychroma.com/telemetry for more information.
+2025-11-07 18:33:58 [INFO] oracle_utils.py:get_db_schema:49 — Fetching table details for table: liability
+2025-11-07 18:34:02 [INFO] oracle_utils.py:get_db_schema:49 — Fetching table details for table: payments
+2025-11-07 18:34:06 [INFO] oracle_utils.py:get_db_schema:49 — Fetching table details for table: payment_method
+2025-11-07 18:34:09 [INFO] oracle_utils.py:get_db_schema:49 — Fetching table details for table: users
+2025-11-07 18:34:14 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:34:14 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:34:15 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:34:16 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:34:16 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:34:17 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:36:13 [INFO] chat_router.py:chat:38 — Generating new chat
+2025-11-07 18:36:13 [INFO] LLMClientFactory.py:getChatClient:11 — Creating  GeminiClient
+2025-11-07 18:36:14 [INFO] chat_router.py:chat:40 — Generated new chat with id: ch-1
+2025-11-07 18:36:14 [INFO] chat_service.py:ping:40 — Processing message: show me the payment distribution over payment method types
+2025-11-07 18:36:14 [INFO] chat_service.py:ping:42 — Found current chat for chat_id: ch-1
+2025-11-07 18:36:14 [INFO] LLMClientFactory.py:getChatClient:11 — Creating  GeminiClient
+2025-11-07 18:36:14 [INFO] chat_service.py:ping:44 — Got LLM client as GeminiClient
+2025-11-07 18:36:18 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:36:18 [INFO] chat_service.py:ping:47 — Got non-empty relevant schema for user query
+2025-11-07 18:36:18 [INFO] models.py:generate_content:6490 — AFC is enabled with max remote calls: 10.
+2025-11-07 18:36:20 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-11-07 18:36:20 [INFO] LLMClient.py:get_query_data:94 — Got sql response from Gemini model
+2025-11-07 18:36:20 [INFO] LLMClient.py:get_query_data:100 — Got function call from Gemini model: execute_query with args: {'query': 'SELECT pm.payment_method_type_code, COUNT(p.payment_method_id) FROM payments p JOIN payment_method pm ON p.payment_method_id = pm.payment_method_id GROUP BY pm.payment_method_type_code'}
+2025-11-07 18:36:27 [INFO] LLMClient.py:get_query_data:107 — Done executing function: execute_query
+2025-11-07 18:36:27 [INFO] LLMClient.py:process_db_result:128 — Processing db result for natural language response
+2025-11-07 18:36:27 [INFO] models.py:generate_content:6490 — AFC is enabled with max remote calls: 10.
+2025-11-07 18:36:31 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-11-07 18:36:31 [INFO] LLMClient.py:process_db_result:140 — Natural language response generated for db result
+2025-11-07 18:36:31 [INFO] chat_service.py:ping:58 — Chart generation possible for the user query
+2025-11-07 18:36:32 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents "HTTP/1.1 200 OK"
+2025-11-07 18:36:32 [INFO] chat_service.py:ping:60 — Got non-empty relevant schema for chart generation relevant question
+2025-11-07 18:36:32 [INFO] models.py:generate_content:6490 — AFC is enabled with max remote calls: 10.
+2025-11-07 18:36:33 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-11-07 18:36:33 [INFO] LLMClient.py:get_query_data:94 — Got sql response from Gemini model
+2025-11-07 18:36:33 [INFO] LLMClient.py:get_query_data:100 — Got function call from Gemini model: execute_query with args: {'query': 'SELECT COUNT(*) FROM payments'}
+2025-11-07 18:36:39 [INFO] LLMClient.py:get_query_data:107 — Done executing function: execute_query
+2025-11-07 18:36:39 [INFO] chat_service.py:ping:66 — Got sql result for chart generation relevant question
+2025-11-07 18:36:39 [INFO] LLMClient.py:create_chart:146 — Chart creation started
+2025-11-07 18:36:39 [INFO] models.py:generate_content:6490 — AFC is enabled with max remote calls: 10.
+2025-11-07 18:36:42 [INFO] _client.py:_send_single_request:1025 — HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2025-11-07 18:36:42 [INFO] LLMClient.py:create_chart:168 — Got function call from Gemini model: pie_chart with args: {'data': [12, 8, 2], 'title': 'Total Number of Payments by Method', 'labels': ['BANK', 'CARD', 'Unspecified']}
+2025-11-07 18:36:43 [INFO] LLMClient.py:create_chart:172 — Done executing function: pie_chart
+2025-11-07 18:36:43 [INFO] chat_service.py:ping:71 — Created chart image tag for the user query
